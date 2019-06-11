@@ -2,12 +2,16 @@ version: '3'
 #networks:
 #	jira-network:
 #volumes:
-#jira-data:
+# jira-home:
+# jira_install_dir:
 services:
   jira:
 #   build:
 #    context: ./
-    image: jira_f
+#    args:
+#       REPO_HOST: ${REPO_HOST}
+#       JIRA_VERSION:${JIRA_VERSION}
+    image: jira
     container_name: jira
     hostname: jira
     restart: unless-stopped
