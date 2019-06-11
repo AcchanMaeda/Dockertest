@@ -1,13 +1,18 @@
-FROM adoptopenjdk/openjdk8:slim
+FROM adoptopenjdk/openjdk8:x86_64-ubantu-jdk8u212-b03
+MAINTAINER acchan
 
 ENV RUN_USER                                daemon
 ENV RUN_GROUP                               daemon
+
 ENV JIRA_HOME                               /var/atlassian/application-data/jira
 ENV JIRA_INSTALL_DIR                        /opt/atlassian/jira
 ENV JIRA_LOG                                /opt/atlassian/jira/logs
 
 VOLUME ["${JIRA_HOME}"]
 VOLUME ["${JIRA_LOG}"]
+
+EXPOSE 8080
+
 WORKDIR $JIRA_HOME
 
 EXPOSE 8080
@@ -15,9 +20,8 @@ EXPOSE 8080
 CMD ["/entrypoint.sh", "-fg"]
 ENTRYPOINT ["/tini", "--"]
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends fontconfig \
-    && apt-get clean autoclean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y wget unzip curl bash procps prel fontconfig && apt-get clean -y && apt-get autoremove -y
+RUN apt-get update && install -y font-ipafont && apt-get clean -y && apt-get autoremove -y
 
 ARG TINI_VERSION=v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
@@ -25,7 +29,7 @@ RUN chmod +x /tini
 
 COPY entrypoint.sh                          /entrypoint.sh
 
-ARG JIRA_VERSION=7.13.1
+ARG JIRA_VERSION=7.13.3
 ARG DOWNLOAD_URL=https://product-downloads.atlassian.com/software/jira/downloads/atlassian-jira-software-${JIRA_VERSION}.tar.gz
 
 RUN mkdir -p                             ${JIRA_INSTALL_DIR} \
@@ -50,6 +54,8 @@ RUN mkdir -p                             ${JIRA_INSTALL_DIR} \
 
 COPY log4j.properties                       ${JIRA_INSTALL_DIR}/atlassian-jira/WEB-INF/classes/log4j.properties
 COPY server.xml                             ${JIRA_INSTALL_DIR}/conf/server.xml
+
+VOLUME ["${JIRA_INSTALL_DIR}"]
 
 RUN chown -R ${RUN_USER}:${RUN_GROUP} ${JIRA_INSTALL_DIR}/atlassian-jira/WEB-INF/classes/log4j.properties\ 
  && chown -R ${RUN_USER}:${RUN_GROUP} ${JIRA_INSTALL_DIR}/conf/server.xml 
